@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
-#include "md5/md5.h"
+#include "md5-c/md5.h"
 
 const char key[] = "ckczppom";
 
