@@ -1,12 +1,37 @@
+#include <stdint.h>
 #include <stdio.h>
-#include <openssl/md5.h>
 #include <string.h>
 #include <pthread.h>
+#include "md5/md5.h"
 
-const char key[] = "abcdef";
+const char key[] = "ckczppom";
 
-void* check(void* arg) {
-    int n = *(int*)(arg);
+
+
+int check_v2(int n) {
+    char string [128] = "\0";
+    char n_str [64];
+    sprintf(n_str, "%d", n);
+    strcat(string, key);
+    strcat(string, n_str);
+    uint8_t ris[16];
+    md5String(string, ris);
+    string[0] = 0;
+    for(int i = 0; i < 16; i++)
+        sprintf(&string[i*2], "%02x\n", ris[i]);
+     
+    int all_zero = 1;
+    for(int i = 0; i < 6; i++)
+        if(string[i] != '0'){
+            all_zero = 0;
+            break;
+        }
+    if(all_zero)
+        printf("found:%d-%s", n, string);
+    return all_zero;
+}
+
+int check(int n) {
     char cmd[128];
     cmd[0] = '\0';
     char pre[] = "echo -n ";
@@ -31,26 +56,17 @@ void* check(void* arg) {
     if(all_zero)
         printf("found: %d\n", n);
     pclose(file);
-    return NULL;
+    return all_zero;
 }
 
 int main(){
     int i = 0;
-    pthread_t therds[4];
-    int arg[4];
-    for(int j = 0; j < 4; j++){
-        arg[j] = i++;
-        pthread_create(&therds[j], NULL, check, &arg[j]);
-    }
-    while(1) {
-        for(int j = 0; j < 4; j++) {
-            if(pthread_detach(therds[j]) == 0) {
-                pthread_join(therds[j], NULL);
-                arg[j] = i++;   
-                pthread_create(&therds[j], NULL, check, &arg[j]);
-            }
+    while (i < 10000000){
+        if(check_v2(i)) {
+            break;
         }
-        int temp = i % 1000;
-        if(temp >= 0 && temp <= 10) printf("%d\n", i);
-    } 
+        if(i % 100 == 0) 
+            printf("%d\n", i);
+        i++;
+    }
 }
