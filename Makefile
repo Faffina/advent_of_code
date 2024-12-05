@@ -1,6 +1,7 @@
 %: %.c
 	gcc -g $< -o prog
-	./prog
+	./prog | wl-copy
+	wl-paste
 
 c:
 	wl-paste > i
